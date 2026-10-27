@@ -1,0 +1,287 @@
+{
+  "_documentacion": {
+    "descripcion": "Esquema maestro de plantilla para SnapReport. Define la estructura completa que gobierna cómo se capturan datos en la app móvil y cómo se mapean al archivo Excel de salida.",
+    "proposito": "Este archivo JSON actúa como contrato entre la aplicación móvil (captura de datos) y el motor de generación de reportes (escritura en Excel). Cada campo declarado aquí se renderiza en la app y se escribe en la celda Excel correspondiente.",
+    "conceptos_clave": {
+      "excel_map": "Objeto que indica la hoja y celda exacta del Excel donde se escribe el valor capturado. El formato { hoja, celda } apunta a una celda única; el formato { hoja, startCol, endCol, startRow, endRow } define un rango de celdas combinadas (merge range).",
+      "secciones": "Agrupaciones lógicas de campos que se presentan como pantallas o tarjetas en la app móvil. Cada sección contiene un array de campos tipados.",
+      "tablas_repetibles": "Tablas dinámicas donde el usuario puede agregar filas (por ejemplo, listado de equipos). Se mapean a filas consecutivas en Excel a partir de fila_inicio_excel.",
+      "reglas_globales": "Configuración transversal que aplica a todo el reporte: límites de fotos, comportamiento de anexos dinámicos, etc.",
+      "anexo_dinamico": "Mecanismo para generar hojas adicionales en el Excel cuando se necesitan más fotos. Usa una hoja molde que se duplica y rellena con las imágenes capturadas.",
+      "firmas": "Campos de firma digital capturados mediante trazo táctil en la app. Se insertan como imagen en el rango Excel especificado."
+    },
+    "version_schema": "1.0.0",
+    "autor": "Equipo SnapReport",
+    "notas": [
+      "Todos los campos con required=true deben completarse antes de poder generar el reporte.",
+      "Los campos de tipo 'select' presentan un desplegable en la app con las opciones listadas.",
+      "Los campos de tipo 'date' abren un selector de fecha nativo en la app.",
+      "Los campos con multilinea=true se renderizan como textarea en la app."
+    ]
+  },
+
+  "template_id": "inspeccion_equipos_v1",
+  "nombre_plantilla": "Inspección Técnica de Equipos Industriales",
+  "version": "1.0.0",
+  "cliente_ejemplo": "Empresa de Servicios de Energía",
+  "descripcion": "Plantilla para inspecciones técnicas periódicas de equipos industriales en plantas de generación y distribución de energía. Incluye registro de condiciones operativas, listado de equipos inspeccionados y firmas de conformidad.",
+
+  "reglas_globales": {
+    "min_fotos": 3,
+    "max_fotos": 25,
+    "formatos_foto_permitidos": ["jpg", "png"],
+    "calidad_foto": 85,
+    "anexo_dinamico": {
+      "activo": true,
+      "hoja_molde": "anexo_1",
+      "descripcion_molde": "Hoja que se duplica automáticamente para alojar fotografías adicionales cuando las fotos capturadas superan la capacidad de la hoja principal.",
+      "slots_por_hoja": [
+        {
+          "slot_id": 1,
+          "epigrafe_celda": "B4",
+          "imagen_rango": {
+            "startCol": 1,
+            "endCol": 8,
+            "startRow": 5,
+            "endRow": 22
+          }
+        },
+        {
+          "slot_id": 2,
+          "epigrafe_celda": "B22",
+          "imagen_rango": {
+            "startCol": 1,
+            "endCol": 8,
+            "startRow": 23,
+            "endRow": 40
+          }
+        }
+      ]
+    }
+  },
+
+  "secciones": [
+    {
+      "id": "cabecera",
+      "titulo": "Datos Generales",
+      "descripcion": "Información general de la inspección: identificación del cliente, fecha, ubicación y responsable asignado.",
+      "orden": 1,
+      "campos": [
+        {
+          "id": "cliente",
+          "label": "Cliente",
+          "tipo": "text",
+          "required": true,
+          "placeholder": "Nombre de la empresa o cliente",
+          "max_length": 120,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F7"
+          }
+        },
+        {
+          "id": "fecha_inspeccion",
+          "label": "Fecha de Inspección",
+          "tipo": "date",
+          "required": true,
+          "formato_fecha": "dd/MM/yyyy",
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F8"
+          }
+        },
+        {
+          "id": "ubicacion",
+          "label": "Ubicación",
+          "tipo": "text",
+          "required": true,
+          "placeholder": "Planta, edificio o dirección de la inspección",
+          "max_length": 200,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F9"
+          }
+        },
+        {
+          "id": "numero_orden_trabajo",
+          "label": "Nº Orden de Trabajo",
+          "tipo": "text",
+          "required": false,
+          "placeholder": "OT-2024-XXXX",
+          "max_length": 30,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F10"
+          }
+        },
+        {
+          "id": "responsable",
+          "label": "Responsable de la Inspección",
+          "tipo": "text",
+          "required": true,
+          "placeholder": "Nombre completo del inspector responsable",
+          "max_length": 100,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F11"
+          }
+        }
+      ]
+    },
+    {
+      "id": "condiciones_operativas",
+      "titulo": "Condiciones Operativas",
+      "descripcion": "Registro de las condiciones ambientales y operativas al momento de la inspección.",
+      "orden": 2,
+      "campos": [
+        {
+          "id": "temperatura_ambiente",
+          "label": "Temperatura Ambiente (°C)",
+          "tipo": "number",
+          "required": true,
+          "unidad": "°C",
+          "min": -20,
+          "max": 60,
+          "decimales": 1,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F13"
+          }
+        },
+        {
+          "id": "presion_operativa",
+          "label": "Presión Operativa (bar)",
+          "tipo": "number",
+          "required": true,
+          "unidad": "bar",
+          "min": 0,
+          "max": 500,
+          "decimales": 2,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F14"
+          }
+        },
+        {
+          "id": "estado_general",
+          "label": "Estado General de la Instalación",
+          "tipo": "select",
+          "required": true,
+          "opciones": [
+            "Operativo",
+            "Fuera de Servicio",
+            "En Mantenimiento"
+          ],
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "F15"
+          }
+        },
+        {
+          "id": "observaciones_generales",
+          "label": "Observaciones Generales",
+          "tipo": "text",
+          "required": false,
+          "multilinea": true,
+          "placeholder": "Describa cualquier observación relevante sobre las condiciones generales encontradas durante la inspección.",
+          "max_length": 1000,
+          "excel_map": {
+            "hoja": "Hoja1",
+            "celda": "B30"
+          }
+        }
+      ]
+    }
+  ],
+
+  "tablas_repetibles": [
+    {
+      "id": "equipos_inspeccionados",
+      "titulo": "Equipos Inspeccionados",
+      "descripcion": "Listado detallado de cada equipo revisado durante la inspección, con su estado y observaciones particulares.",
+      "max_filas": 20,
+      "fila_inicio_excel": 16,
+      "hoja": "Hoja1",
+      "columnas": [
+        {
+          "id": "item",
+          "label": "Ítem",
+          "tipo": "number",
+          "col": "B",
+          "auto_increment": true,
+          "descripcion": "Número correlativo del equipo inspeccionado."
+        },
+        {
+          "id": "codigo_equipo",
+          "label": "Código de Equipo",
+          "tipo": "text",
+          "col": "C",
+          "max_length": 20,
+          "placeholder": "EQ-001",
+          "descripcion": "Identificador único del equipo según el inventario de la planta."
+        },
+        {
+          "id": "descripcion",
+          "label": "Descripción",
+          "tipo": "text",
+          "col": "D",
+          "max_length": 150,
+          "placeholder": "Bomba centrífuga de recirculación",
+          "descripcion": "Nombre o descripción breve del equipo inspeccionado."
+        },
+        {
+          "id": "estado",
+          "label": "Estado",
+          "tipo": "select",
+          "col": "E",
+          "opciones": [
+            "Aprobado",
+            "Rechazado",
+            "Observado"
+          ],
+          "descripcion": "Resultado de la inspección para este equipo."
+        },
+        {
+          "id": "observacion",
+          "label": "Observación",
+          "tipo": "text",
+          "col": "F",
+          "max_length": 300,
+          "placeholder": "Detalle de hallazgos o notas",
+          "descripcion": "Comentarios adicionales sobre el estado del equipo."
+        }
+      ]
+    }
+  ],
+
+  "firmas": [
+    {
+      "id": "firma_inspector",
+      "label": "Firma del Inspector",
+      "rol": "inspector",
+      "required": true,
+      "descripcion": "Firma digital del inspector que realizó la revisión en campo.",
+      "excel_map": {
+        "hoja": "Hoja1",
+        "startCol": 1,
+        "endCol": 4,
+        "startRow": 38,
+        "endRow": 42
+      }
+    },
+    {
+      "id": "firma_supervisor",
+      "label": "Firma del Supervisor",
+      "rol": "supervisor",
+      "required": true,
+      "descripcion": "Firma digital del supervisor que valida y aprueba el reporte de inspección.",
+      "excel_map": {
+        "hoja": "Hoja1",
+        "startCol": 5,
+        "endCol": 8,
+        "startRow": 38,
+        "endRow": 42
+      }
+    }
+  ]
+}
